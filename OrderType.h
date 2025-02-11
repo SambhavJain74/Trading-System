@@ -8,5 +8,5 @@ enum class OrderType
     FillAndKill,
     FillOrKill,
     MinimumQuantity,
-    DisplayQuantity,
+    DisplayQuantity
 };
