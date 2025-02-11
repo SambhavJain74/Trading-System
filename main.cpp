@@ -1,135 +1,5 @@
 #include "utilities.h"
 
-enum class OrderType
-{
-    GoodTillCancel,
-    FillAndKill
-};
-
-enum class Side
-{
-    Buy,
-    Sell  
-};
-
-using Price = std::int32_t;
-using Quantity = std::uint32_t;
-using OrderId = std::uint64_t;
-
-struct LevelInfo
-{
-    Price price_;
-    Quantity quantity_;
-};
-
-using LevelInfos = std::vector<LevelInfo>;
-
-class OrderbookLevelInfos
-{
-    private:
-    LevelInfos bids_, asks_;
-    
-    public:
-    OrderbookLevelInfos(const LevelInfos &bids, const LevelInfos &asks) 
-    : bids_(bids)
-    , asks_(asks)
-    {}
-
-    const LevelInfos& GetBids() { return bids_; }
-    const LevelInfos& GetAsks() { return asks_; }
-};
-
-class Order
-{
-    private:
-    OrderType orderType_;
-    OrderId orderId_;
-    Side side_;
-    Price price_;
-    Quantity initialQuantity_, remainingQuantity_;
-
-    public:
-    Order(OrderType orderType, OrderId orderId, Side side, Price price, Quantity quantity)
-        : orderType_(orderType)
-        , orderId_(orderId)
-        , side_(side)
-        , price_(price)
-        , initialQuantity_(quantity)
-        , remainingQuantity_(quantity)
-        {}
-
-    OrderId GetOrderId() const { return orderId_; }
-    Side GetSide() const {return side_; }
-    Price GetPrice() const {return price_; }
-    OrderType GetOrderType() const {return orderType_; }
-    Quantity GetInitialQuantity() const {return initialQuantity_; }
-    Quantity GetRemainingQuantity() const {return remainingQuantity_; }
-    Quantity GetFilledQuantity() const {return GetInitialQuantity() - GetRemainingQuantity(); }
-    bool isFilled() const { return GetRemainingQuantity() == 0; }
-    void Fill(Quantity quantity)
-    {
-        if (quantity > GetRemainingQuantity())
-        {
-            throw std::logic_error(std::format("Order ({}) cannot be filled for more than its remaining quantity.", GetOrderId()));
-        }
-        remainingQuantity_ -= quantity;
-    }
-};
-
-using OrderPointer = std::shared_ptr<Order>;
-using OrderPointers = std::list<OrderPointer>;
-
-class OrderModify
-{
-    private:
-    OrderId orderId_;
-    Side side_;
-    Price price_;
-    Quantity quantity_;
-
-    public:
-    OrderModify(OrderId orderId, Side side, Price price, Quantity quantity)
-        : orderId_(orderId)
-        , side_(side)
-        , price_(price)
-        , quantity_(quantity)
-        {}
-    
-    OrderId GetOrderId() const { return orderId_; }
-    Side GetSide() const { return side_; }
-    Price GetPrice() const {return price_; }
-    Quantity GetQuantity() const { return quantity_; }
-
-    OrderPointer ToOrderPointer(OrderType type) const
-    {
-        return std::make_shared<Order>(type, GetOrderId(), GetSide(), GetPrice(), GetQuantity());
-    } 
-};
-
-struct TradeInfo
-{
-    OrderId orderId_;
-    Price price_;
-    Quantity quantity_;  
-};
-
-class Trade 
-{
-    private:
-    TradeInfo bidTrade_, askTrade_;
-
-    public:
-    Trade(const TradeInfo &bidTrade, const TradeInfo &askTrade)
-    : bidTrade_(bidTrade) 
-    , askTrade_(askTrade)
-    {}
-
-    const TradeInfo& GetBidTrade() { return bidTrade_; }
-    const TradeInfo& GetAskTrade() { return askTrade_; }
-};
-
-using Trades = std::vector<Trade>;
-
 class Orderbook 
 {
     private:
@@ -358,10 +228,10 @@ int main()
 {
     Orderbook orderbook; 
     const OrderId orderId = 1;
-    orderbook.AddOrder(std::make_shared<Order>(OrderType::GoodTillCancel, orderId, Side::Buy, 100, 10));
+    orderbook.AddOrder(std::make_shared<Order>(OrderType::GoodTillCanceled, orderId, Side::Buy, 100, 10));
     std::cout << orderbook.Size() << "\n";      // 1
     orderbook.ModifyOrder(OrderModify(orderId, Side::Buy, 100, 20));
     std::cout << orderbook.Size() << "\n";      // 1
-    orderbook.CancelOrder(orderId);
+    orderbook.CancelOrder(orderId); 
     std::cout << orderbook.Size() << "\n";      // 0
 }

@@ -7,3 +7,16 @@
 #include <map>
 #include <unordered_map>
 #include <numeric>
+
+#include <OrderType.h>
+#include <Side.h>
+#include <LevelInfo.h>
+#include <OrderbookLevelInfos.h>
+#include <Order.h>
+#include <OrderModify.h>
+#include <Trade.h>
+#include <TradeInfo.h>
+
+using Price = std::int32_t;
+using Quantity = std::uint32_t;
+using OrderId = std::uint64_t;
